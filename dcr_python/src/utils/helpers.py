@@ -99,3 +99,27 @@ def safe_file_operation(operation_func, *args, **kwargs):
         return True, result, None
     except Exception as e:
         return False, None, e
+def resource_path(*parts: str) -> str:
+    """
+    Get absolute path to resource, works for dev and for PyInstaller.
+    """
+    import sys
+    # Current directory (src/utils) and its parent (src)
+    utils_dir = os.path.dirname(__file__)
+    src_dir = os.path.dirname(utils_dir)
+    
+    base_dirs = [utils_dir, src_dir]
+    
+    # Handle PyInstaller _MEIPASS
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        base_dirs.append(meipass)
+        base_dirs.append(os.path.join(meipass, "src"))
+        base_dirs.append(os.path.join(meipass, "src", "ui"))
+        
+    for base_dir in base_dirs:
+        candidate = os.path.normpath(os.path.join(base_dir, *parts))
+        if os.path.exists(candidate):
+            return candidate
+            
+    return os.path.join(base_dirs[0], *parts)

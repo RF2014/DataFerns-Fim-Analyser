@@ -41,3 +41,9 @@ output/
 *.csv
 *.xlsx
 *.xls
+
+#tmp
+tmp/
+
+#agent
+.agent/

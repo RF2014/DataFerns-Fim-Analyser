@@ -330,3 +330,78 @@ class SettingsDialog(QDialog):
             "ifx_dir": self.ifx_dir_input.text(),
             "dbl_dir": self.dbl_dir_input.text()
         }
+class ReportSettingsDialog(QDialog):
+    """Dialog for entering metadata for the official report"""
+    
+    def __init__(self, parent=None, metadata: dict = None):
+        super().__init__(parent)
+        self.setWindowTitle("Paramètres du Rapport")
+        self.setGeometry(100, 100, 450, 450)
+        self.metadata = metadata or {}
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout()
+        form = QFormLayout()
+        
+        # General Info
+        self.site_name = QLineEdit(self.metadata.get('description', ''))
+        self.vmax = QSpinBox()
+        self.vmax.setRange(10, 130)
+        self.vmax.setValue(50)
+        
+        form.addRow("Localisation / Rue:", self.site_name)
+        form.addRow("Vitesse Max (km/h):", self.vmax)
+        
+        # Sect / Ind / Count
+        # Try to guess from metadata or filename if possible, else defaults
+        self.sect = QLineEdit("0170")
+        self.ind = QLineEdit("11")
+        self.count = QLineEdit("0000")
+        
+        sect_layout = QHBoxLayout()
+        sect_layout.addWidget(QLabel("Sect:"))
+        sect_layout.addWidget(self.sect)
+        sect_layout.addWidget(QLabel("Ind:"))
+        sect_layout.addWidget(self.ind)
+        sect_layout.addWidget(QLabel("Count:"))
+        sect_layout.addWidget(self.count)
+        
+        form.addRow("Référence Section:", sect_layout)
+        
+        # Periods
+        self.period1 = QLineEdit("07:00-09:00")
+        self.period2 = QLineEdit("12:00-14:00")
+        self.period3 = QLineEdit("17:00-19:00")
+        
+        form.addRow("Période 1 (HH:MM-HH:MM):", self.period1)
+        form.addRow("Période 2 (HH:MM-HH:MM):", self.period2)
+        form.addRow("Période 3 (HH:MM-HH:MM):", self.period3)
+        
+        layout.addLayout(form)
+        
+        # Help text
+        help_lbl = QLabel("Note: La période d'enquête est calculée automatiquement à partir des dates du fichier.")
+        help_lbl.setWordWrap(True)
+        help_lbl.setStyleSheet("color: gray; font-size: 10px;")
+        layout.addWidget(help_lbl)
+        
+        # Buttons
+        btns = QHBoxLayout()
+        ok_btn = QPushButton("Générer")
+        ok_btn.clicked.connect(self.accept)
+        cancel_btn = QPushButton("Annuler")
+        cancel_btn.clicked.connect(self.reject)
+        btns.addWidget(ok_btn)
+        btns.addWidget(cancel_btn)
+        layout.addLayout(btns)
+        
+        self.setLayout(layout)
+        
+    def get_settings(self) -> dict:
+        return {
+            "site_name": self.site_name.text(),
+            "vmax": self.vmax.value(),
+            "sect_info": f"Sect: {self.sect.text()} / Ind: {self.ind.text()} / Count: {self.count.text()}",
+            "periods": [self.period1.text(), self.period2.text(), self.period3.text()]
+        }
