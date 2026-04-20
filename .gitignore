@@ -41,6 +41,7 @@ output/
 *.csv
 *.xlsx
 *.xls
+!dcr_python/src/report-template.xlsx
 
 #tmp
 tmp/

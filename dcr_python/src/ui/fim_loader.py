@@ -12,8 +12,14 @@ class FIMLoaderWindow(QMainWindow):
     
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("FIM File Loader - Analysis Tool")
+        self.setWindowTitle("DataFerns FIM Analyser")
         self.setGeometry(100, 100, 1000, 600)
+        
+        # Set Window Icon
+        from PyQt5.QtGui import QIcon
+        from dcr_python.src.utils.helpers import resource_path
+        icon_path = resource_path("ui", "logo.ico")
+        self.setWindowIcon(QIcon(icon_path))
         
         # Initialize Shared State
         self.state = AppState()

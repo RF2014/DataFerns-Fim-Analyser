@@ -28,63 +28,139 @@ class MetadataPanel(QWidget):
         self.state.subscribe(self.update_ui_from_state)
 
     def init_ui(self):
-        """Initialize layout and widgets"""
-        layout = QVBoxLayout()
-        layout.setSpacing(5)
+        """Initialize premium modern UI layout"""
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', sans-serif;
+            }
+            QGroupBox {
+                background-color: #ffffff;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                margin-top: 1.5em;
+                padding: 15px;
+                font-weight: bold;
+                color: #495057;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+            QPushButton {
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+                font-weight: 600;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: #0056b3;
+            }
+            QPushButton#report_btn {
+                background-color: #28a745;
+            }
+            QPushButton#report_btn:hover {
+                background-color: #218838;
+            }
+            QLabel#title_label {
+                color: #212529;
+                font-size: 24px;
+                font-weight: 800;
+            }
+            QLabel#status_label {
+                color: #6c757d;
+                font-size: 13px;
+            }
+            QLabel#meta_val {
+                color: #007bff;
+                font-weight: 700;
+                font-size: 14px;
+            }
+        """)
 
-        # 1. File Selection Row
-        file_layout = QHBoxLayout()
-        self.file_label = QLabel("Aucun fichier chargé")
-        self.file_label.setStyleSheet("color: #0066cc;")
-        self.file_label.setFont(QFont("Segoe UI", 11))
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(30, 20, 30, 20)
+        main_layout.setSpacing(20)
+
+        # 1. Header Section
+        header_widget = QWidget()
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(0, 0, 0, 10)
         
-        load_btn = QPushButton("Charger fichier FIM")
+        title_container = QVBoxLayout()
+        title_label = QLabel("DataFerns ANALYSER")
+        title_label.setObjectName("title_label")
+        self.file_label = QLabel("Prêt pour la capture de données")
+        self.file_label.setObjectName("status_label")
+        title_container.addWidget(title_label)
+        title_container.addWidget(self.file_label)
+        
+        logo_label = QLabel()
+        logo_path = resource_path("ui", "logo.png")
+        pix = QPixmap(logo_path)
+        if not pix.isNull():
+            logo_label.setPixmap(pix.scaledToHeight(60, Qt.SmoothTransformation))
+        
+        header_layout.addLayout(title_container)
+        header_layout.addStretch()
+        header_layout.addWidget(logo_label)
+        main_layout.addWidget(header_widget)
+
+        # 2. Controls Bar
+        ctrl_card = QGroupBox("Operations")
+        ctrl_layout = QHBoxLayout()
+        load_btn = QPushButton("Charger FIM")
         load_btn.clicked.connect(self.load_file)
         
-        self.extract_btn = QPushButton("Extraire données")
+        self.extract_btn = QPushButton("Extraire Données")
         self.extract_btn.clicked.connect(self.extract_data)
         
-        self.report_btn = QPushButton("Générer des rapports")
+        self.report_btn = QPushButton("Générer Rapports")
+        self.report_btn.setObjectName("report_btn")
         self.report_btn.clicked.connect(self.generate_reports)
         
-        file_layout.addWidget(QLabel("Fichier:"))
-        file_layout.addWidget(self.file_label)
-        file_layout.addWidget(load_btn)
-        file_layout.addWidget(self.extract_btn)
-        file_layout.addWidget(self.report_btn)
-        layout.addLayout(file_layout)
+        ctrl_layout.addWidget(load_btn)
+        ctrl_layout.addWidget(self.extract_btn)
+        ctrl_layout.addStretch()
+        ctrl_layout.addWidget(self.report_btn)
+        ctrl_card.setLayout(ctrl_layout)
+        main_layout.addWidget(ctrl_card)
 
-        # 2. Metadata Grid
-        metadata_group = QGroupBox("Métadonnées")
+        # 3. Content Area (Metadata)
+        content_layout = QHBoxLayout()
+        
+        metadata_group = QGroupBox("Statistiques de Trafic")
         grid = QGridLayout()
+        grid.setVerticalSpacing(15)
+        grid.setHorizontalSpacing(30)
         
         field_names = [
-            ('Date/Heure de début', 'start_datetime'),
-            ('Date/Heure de fin', 'end_datetime'),
-            ('TMJ VL Sens 1', 'tmj_vl_sens1'),
-            ('TMJ VL Sens 2', 'tmj_vl_sens2'),
-            ('TMJ PL Sens 1', 'tmj_pl_sens1'),
-            ('TMJ PL Sens 2', 'tmj_pl_sens2'),
+            ('Période de début', 'start_datetime'),
+            ('Période de fin', 'end_datetime'),
+            ('Sens 1 : VL (TMJ)', 'tmj_vl_sens1'),
+            ('Sens 2 : VL (TMJ)', 'tmj_vl_sens2'),
+            ('Sens 1 : PL (TMJ)', 'tmj_pl_sens1'),
+            ('Sens 2 : PL (TMJ)', 'tmj_pl_sens2'),
         ]
         
         for i, (label_text, key) in enumerate(field_names):
-            lbl = QLabel(label_text + ":")
+            lbl = QLabel(label_text)
+            lbl.setStyleSheet("color: #495057; font-weight: 500;")
             val_lbl = QLabel("--")
-            val_lbl.setStyleSheet("color: #0066cc;")
+            val_lbl.setObjectName("meta_val")
             grid.addWidget(lbl, i, 0)
             grid.addWidget(val_lbl, i, 1)
             self.metadata_fields[key] = val_lbl
 
-        # Logo
-        logo_label = QLabel()
-        pix = QPixmap(resource_path("logo.png"))
-        if not pix.isNull():
-            logo_label.setPixmap(pix.scaledToHeight(64, Qt.SmoothTransformation))
-        grid.addWidget(logo_label, len(field_names), 1, alignment=Qt.AlignRight)
-
         metadata_group.setLayout(grid)
-        layout.addWidget(metadata_group)
-        self.setLayout(layout)
+        content_layout.addWidget(metadata_group)
+        
+        main_layout.addLayout(content_layout)
+        self.setLayout(main_layout)
 
     def load_file(self):
         """Load and parse FIM file"""

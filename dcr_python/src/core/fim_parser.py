@@ -203,6 +203,11 @@ def parse_fim_file(path: str, vl_pl_mapping: Optional[Dict] = None, interval_min
         metadata['raw_data'] = all_data  # retain raw rows for speed/avg calculations
         metadata['sensor_map'] = sensor_map  # map sensor_id -> direction+class
         
+        # Capture Start and End Datetimes for UI
+        if df is not None and not df.empty:
+            metadata['start_datetime'] = df['timestamp'].min().strftime('%d/%m/%Y %H:%M')
+            metadata['end_datetime'] = df['timestamp'].max().strftime('%d/%m/%Y %H:%M')
+        
         return df, metadata
 
     except Exception as e:
