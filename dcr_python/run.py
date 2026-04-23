@@ -12,7 +12,7 @@ src_path = os.path.join(os.path.dirname(__file__), 'src')
 project_root = os.path.dirname(src_path)
 sys.path.insert(0, project_root)
 
-from src.main import main
+from src.ui.fim_loader import main
 
 if __name__ == "__main__":
     main()

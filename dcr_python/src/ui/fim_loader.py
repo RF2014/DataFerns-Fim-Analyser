@@ -4,8 +4,8 @@ FIM File Loader - Refactored Main Window
 """
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from dcr_python.src.ui.metadata_panel import MetadataPanel
-from dcr_python.src.models.state import AppState
+from src.ui.metadata_panel import MetadataPanel
+from src.models.state import AppState
 
 class FIMLoaderWindow(QMainWindow):
     """Main window for FIM File Loader (Modular Version)"""
@@ -17,7 +17,7 @@ class FIMLoaderWindow(QMainWindow):
         
         # Set Window Icon
         from PyQt5.QtGui import QIcon
-        from dcr_python.src.utils.helpers import resource_path
+        from src.utils.helpers import resource_path
         icon_path = resource_path("ui", "logo.ico")
         self.setWindowIcon(QIcon(icon_path))
         

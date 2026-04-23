@@ -21,7 +21,11 @@ class ReportService:
         # Load without external links to prevent security warnings
         wb = openpyxl.load_workbook(output_path, keep_links=False)
         
-        # 0. Global Cleanup: Kill all external links in charts or defined names
+        # Calculate days for indexing and layout
+        days = sorted(df['timestamp'].dt.date.unique())
+        num_days = len(days)
+        
+        # 0. Global Cleanup: Kill all external links in charts
         for ws in wb.worksheets:
             if hasattr(ws, '_charts'):
                 for chart in ws._charts:
@@ -45,7 +49,16 @@ class ReportService:
                 if sheet_name == 'Synthese_des_donnees':
                     ReportService._populate_synthesis(ws, df, metadata, settings)
                 else:
-                    ReportService._populate_full_sheet(ws, df, metadata, settings, direction)
+                    ReportService._populate_full_sheet(ws, df, metadata, settings, direction, days)
+                    
+                    # Update Print Area to match current days (Expanded to AR for full width)
+                    last_printable_row = 57 + (num_days * 56)
+                    ws.print_area = f'A1:AR{last_printable_row}'
+                    
+                    # Layout Management
+                    ws.page_setup.fitToWidth = 1
+                    ws.page_setup.fitToHeight = 0 # Use manual breaks naturally
+                    ws.sheet_properties.pageSetUpPr.fitToPage = True
             else:
                 print(f"Warning: Expected sheet {sheet_name} not found in template.")
         
@@ -57,7 +70,7 @@ class ReportService:
             
         wb.save(output_path)
         
-        # 3. Auto-open
+        # 4. Auto-open
         try:
             os.startfile(output_path)
         except Exception:
@@ -133,7 +146,7 @@ class ReportService:
             ReportService._safe_write(ws, row, 7, times[1] if len(times)>1 else '')
 
     @staticmethod
-    def _populate_full_sheet(ws, df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any], direction: str):
+    def _populate_full_sheet(ws, df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any], direction: str, days: List[date]):
         vmax = float(settings.get('vmax', 50.0))
         periods = settings.get('periods', [])
         
@@ -143,7 +156,6 @@ class ReportService:
         ReportService._inject_chart_data(ws, df, 0, direction)
 
         # Subsequent daily blocks 
-        days = sorted(df['timestamp'].dt.date.unique())
         block_height = 56
         
         for block_idx in range(1, len(days) + 1):
