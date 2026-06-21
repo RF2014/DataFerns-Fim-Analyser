@@ -369,6 +369,18 @@ class ReportSettingsDialog(QDialog):
         
         form.addRow("Référence Section:", sect_layout)
         
+        # GPS and Sens
+        gps_val = self.metadata.get('gps_coordinates', '')
+        if gps_val is None:
+            gps_val = ''
+        self.gps_input = QLineEdit(gps_val)
+        
+        # Sens (Direction) must always start empty for manual entry
+        self.sens_input = QLineEdit('')
+        
+        form.addRow("Cordonnées GPS:", self.gps_input)
+        form.addRow("Sens:", self.sens_input)
+        
         # Periods
         self.period1 = QLineEdit("07:00-09:00")
         self.period2 = QLineEdit("12:00-14:00")
@@ -403,5 +415,7 @@ class ReportSettingsDialog(QDialog):
             "site_name": self.site_name.text(),
             "vmax": self.vmax.value(),
             "sect_info": f"Sect: {self.sect.text()} / Ind: {self.ind.text()} / Count: {self.count.text()}",
-            "periods": [self.period1.text(), self.period2.text(), self.period3.text()]
+            "periods": [self.period1.text(), self.period2.text(), self.period3.text()],
+            "gps_coordinates": self.gps_input.text(),
+            "sens": self.sens_input.text()
         }

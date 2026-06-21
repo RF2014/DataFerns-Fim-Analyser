@@ -33,7 +33,7 @@ class ReportService:
                         chart.external_data_source = None
 
         # 1. Update Global Metadata (Site, Vmax, Sect, Period)
-        ReportService._global_metadata_propagation(wb, df, settings)
+        ReportService._global_metadata_propagation(wb, df, metadata, settings)
 
         # 2. Main Sheet Injection (Strict Mapping)
         standard_sheets = {
@@ -94,7 +94,7 @@ class ReportService:
             pass
 
     @staticmethod
-    def _global_metadata_propagation(wb, df: pd.DataFrame, settings: Dict[str, Any]):
+    def _global_metadata_propagation(wb, df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any]):
         periods = settings.get('periods', [])
         p_vals = []
         for p in periods:
@@ -103,8 +103,21 @@ class ReportService:
             p_vals.append(parts[1].strip() if len(parts) > 1 else '')
         while len(p_vals) < 6: p_vals.append('')
 
+        # Prioritize user manual entry for GPS (including blank values)
+        if 'gps_coordinates' in settings:
+            gps = settings['gps_coordinates']
+        else:
+            gps = metadata.get('gps_coordinates', '') if metadata else ''
+            
+        if gps is None:
+            gps = ''
+
+        location_val = settings.get('site_name', '--')
+        if gps:
+            location_val = f"{location_val} (GPS: {gps})"
+
         replacements = {
-            "{{LOCATION}}": settings.get('site_name', '--'),
+            "{{LOCATION}}": location_val,
             "{{VMAX}}": settings.get('vmax', 50),
             "{{SECT_INFO}}": settings.get('sect_info', 'Sect: 0000 / Ind: 00 / Count: 0000'),
             "{{P1_START}}": p_vals[0], "{{P1_END}}": p_vals[1],
@@ -144,6 +157,25 @@ class ReportService:
             times = p_str.split('-')
             ReportService._safe_write(ws, row, 5, times[0] if len(times)>0 else '')
             ReportService._safe_write(ws, row, 7, times[1] if len(times)>1 else '')
+
+        # Write GPS and Sens to the top header area of the Synthesis page (Page 1)
+        sens = settings.get('sens', '')
+
+        # Unmerge columns L, M, N to merge them into a single wide block for readability
+        try:
+            ws.unmerge_cells('L3:L4')
+            ws.unmerge_cells('M3:M4')
+            ws.unmerge_cells('N3:N4')
+            ws.merge_cells('L3:P4')
+            
+            # Ensure text is left-aligned and vertically centered
+            from openpyxl.styles import Alignment
+            ws['L3'].alignment = Alignment(horizontal='left', vertical='center')
+        except Exception:
+            pass
+
+        ReportService._safe_write(ws, 3, 11, "Sens:")
+        ReportService._safe_write(ws, 3, 12, sens)
 
     @staticmethod
     def _populate_full_sheet(ws, df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any], direction: str, days: List[date]):

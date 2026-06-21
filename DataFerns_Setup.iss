@@ -1,14 +1,15 @@
 ; Inno Setup Script for DataFerns Fim Analyser
+; Compiles the build from dist/DataFerns-Analyser into a single installer executable.
 
 [Setup]
 AppId={{588DD940-8E14-47FF-8F85-C85FF485E6BC}
-AppName=DataFerns Fim Analyser
-AppVersion=1.0
+AppName=DataFerns FIM Analyser v2.1
+AppVersion=2.1
 AppPublisher=DataFerns
 DefaultDirName={autopf}\DataFerns Fim Analyser
 DefaultGroupName=DataFerns Fim Analyser
 OutputDir=.
-OutputBaseFilename=DataFerns_Setup
+OutputBaseFilename=FIM_Analyzer_Setup_v2.1
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

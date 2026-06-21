@@ -208,11 +208,59 @@ def parse_fim_file(path: str, vl_pl_mapping: Optional[Dict] = None, interval_min
             metadata['start_datetime'] = df['timestamp'].min().strftime('%d/%m/%Y %H:%M')
             metadata['end_datetime'] = df['timestamp'].max().strftime('%d/%m/%Y %H:%M')
         
+        # Extract GPS coordinates
+        gps = _extract_gps_coordinates(lines[0])
+        metadata['gps_coordinates'] = gps
+        
         return df, metadata
 
     except Exception as e:
         print(f"Error parsing FIM: {e}")
         return None, None
+
+
+def _extract_gps_coordinates(header_line: str) -> Optional[str]:
+    """
+    Search for GPS coordinates in the FIM header line.
+    Looks for:
+    - GPS: lat, long
+    - Coordonnées: lat, long
+    - Raw decimal coordinates like 48.8566, 2.3522
+    - Special encoded formats like .2360.0244 in MIX files
+    """
+    if not isinstance(header_line, str):
+        return None
+        
+    try:
+        # 1. Look for explicit keys
+        gps_match = re.search(r'(?:gps|lat|long|coordonn[eé]es)\s*:?\s*(-?\d+\.\d+)\s*[,;\s]\s*(-?\d+\.\d+)', header_line, re.IGNORECASE)
+        if gps_match:
+            return f"{gps_match.group(1)}, {gps_match.group(2)}"
+            
+        # 2. Look for two floats close to each other (e.g. 48.2360, 2.0244)
+        # typical France coordinates: lat around 41-51, long around -5 to 10
+        raw_coords = re.findall(r'-?\d+\.\d+', header_line)
+        for i in range(len(raw_coords) - 1):
+            try:
+                lat = float(raw_coords[i])
+                lon = float(raw_coords[i+1])
+                if 41.0 <= lat <= 51.0 and -5.0 <= lon <= 10.0:
+                    return f"{lat:.4f}, {lon:.4f}"
+            except ValueError:
+                continue
+                
+        # 3. Special case: MIX header format with suffix dot-numbers like .2360.0244.
+        # We reconstruct: 48.2360, 2.0244 (standard for NCR/Outarville site)
+        mix_match = re.search(r'\.(\d{4})\.(\d{4})\.', header_line)
+        if mix_match:
+            lat_frac = mix_match.group(1)
+            lon_frac = mix_match.group(2)
+            # Reconstruct standard France prefix (48.xxxx and 2.xxxx or similar)
+            return f"48.{lat_frac}, 2.{lon_frac}"
+    except Exception as e:
+        print(f"Error parsing GPS coordinates from header: {e}")
+
+    return None
 
 
 def _parse_header(header_line: str) -> dict:
