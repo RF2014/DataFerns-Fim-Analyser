@@ -208,6 +208,23 @@ def parse_fim_file(path: str, vl_pl_mapping: Optional[Dict] = None, interval_min
             metadata['start_datetime'] = df['timestamp'].min().strftime('%d/%m/%Y %H:%M')
             metadata['end_datetime'] = df['timestamp'].max().strftime('%d/%m/%Y %H:%M')
         
+        # Determine if velocity data is present
+        has_velocity = True
+        mode_val = metadata.get('mode', 4)
+        if mode_val in [1, 2, 3]:
+            has_velocity = False
+        else:
+            if all_data:
+                col_totals = [sum(row[i] for row in all_data) for i in range(12)]
+                non_zero_bins = sum(1 for tot in col_totals if tot > 0)
+                if non_zero_bins <= 1 and sum(col_totals) > 0:
+                    has_velocity = False
+                elif sum(col_totals) == 0:
+                    has_velocity = False
+            else:
+                has_velocity = False
+        metadata['has_velocity'] = has_velocity
+
         # Extract GPS coordinates
         gps = _extract_gps_coordinates(lines[0])
         metadata['gps_coordinates'] = gps

@@ -56,4 +56,7 @@ htmlcov/
 *.xlsx
 *.xls
 *.csv
+!src/report-template.xlsx
+!src/report-template-no-velocity.xlsx
 output/
+scratch/

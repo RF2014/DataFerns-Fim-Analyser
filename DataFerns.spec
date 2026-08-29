@@ -8,6 +8,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('dcr_python/src/report-template.xlsx', 'src/'),
+        ('dcr_python/src/report-template-no-velocity.xlsx', 'src/'),
         ('dcr_python/src/ui/logo.png', 'src/ui/'),
         ('dcr_python/src/ui/logo.ico', 'src/ui/'),
     ],
@@ -18,7 +19,8 @@ a = Analysis(
         'numpy',
         'dateutil',
         'pytz',
-        'PIL'
+        'PIL',
+        'xlrd'
     ],
     hookspath=[],
     hooksconfig={},

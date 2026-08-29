@@ -13,7 +13,17 @@ from ..utils.helpers import resource_path
 
 class ReportService:
     @staticmethod
-    def generate_report(df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any], output_folder: str) -> str:
+    def generate_report(df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any], output_folder: str, auto_open: bool = False) -> str:
+        # Determine if velocity data is present
+        has_velocity = metadata.get('has_velocity', True)
+        bin_cols = [f"Bin{i+1}" for i in range(12)]
+        if all(c in df.columns for c in bin_cols):
+            if df[bin_cols].sum().sum() == 0:
+                has_velocity = False
+
+        if not has_velocity:
+            return ReportService._generate_no_velocity_report(df, metadata, settings, output_folder, auto_open=auto_open)
+
         template_path = resource_path("report-template.xlsx")
         output_path = os.path.join(output_folder, f"Rapport_{settings.get('site_name', 'Trafic')}.xlsx")
         shutil.copy2(template_path, output_path)
@@ -71,10 +81,11 @@ class ReportService:
         wb.save(output_path)
         
         # 4. Auto-open
-        try:
-            os.startfile(output_path)
-        except Exception:
-            pass
+        if auto_open:
+            try:
+                os.startfile(output_path)
+            except Exception:
+                pass
             
         return output_path
 
@@ -303,3 +314,207 @@ class ReportService:
                 if not is_synthese:
                     p_pct = (p_count / count * 100) if count > 0 else 0
                     ReportService._safe_write(ws, target_row + 1, col_map['p1'] + j, f"{p_pct:.1f}%")
+
+    @staticmethod
+    def _generate_no_velocity_report(df: pd.DataFrame, metadata: Dict[str, Any], settings: Dict[str, Any], output_folder: str, auto_open: bool = False) -> str:
+        """
+        Generate adapted 3-sheet report layout for traffic datasets without velocity.
+        Matches the layout of DataFIMLoader-V3/Format-without-velocity.
+        """
+        template_path = resource_path("report-template-no-velocity.xlsx")
+        output_path = os.path.join(output_folder, f"Rapport_{settings.get('site_name', 'Trafic')}.xlsx")
+        shutil.copy2(template_path, output_path)
+        
+        wb = openpyxl.load_workbook(output_path, keep_links=False)
+        
+        # 0. Global Cleanup: Kill all external links in charts
+        for ws in wb.worksheets:
+            if hasattr(ws, '_charts'):
+                for chart in ws._charts:
+                    if hasattr(chart, 'external_data_source') and chart.external_data_source:
+                        chart.external_data_source = None
+                        
+        days = sorted(df['timestamp'].dt.date.unique())
+        start_dt = df['timestamp'].min()
+        end_dt = df['timestamp'].max()
+        period_str = f"Du {start_dt.strftime('%d/%m/%Y')} au {end_dt.strftime('%d/%m/%Y')}"
+        
+        # Identify vehicle classes present
+        classes = sorted(df['vehicle_class'].unique())
+        is_2rm = '2RM' in classes or '2R' in classes
+        v_class_1 = '2RM' if is_2rm else 'VL'
+        v_class_2 = '2R' if is_2rm else 'PL'
+        header_class_str = "(DEBIT 2RM/2R)" if is_2rm else "(DEBIT VL/PL)"
+        legend_class_str = "2RM = 2 Roues Motorisées   2R = Cycles" if is_2rm else "VL = Véhicules légers   PL = Poids lourds"
+        
+        site_name = settings.get('site_name', 'Trafic')
+        commune_str = f"COMMUNE DE {site_name}"
+        voie_str = settings.get('voie', '') or settings.get('site_name', '')
+        point_str = settings.get('sect_info', 'C01')
+        
+        sens_configs = [
+            ('Synthèse Sens1', 'Sens 1', 1, settings.get('sens', 'Sens 1')),
+            ('Synthèse Sens2', 'Sens 2', 2, settings.get('sens2_name', 'Sens 2')),
+            ('Synthèse Sens3', 'Total', 3, '-')
+        ]
+        
+        for sheet_name, direction, sens_num, direction_label in sens_configs:
+            if sheet_name not in wb.sheetnames:
+                continue
+            ws = wb[sheet_name]
+            
+            # Header Page 1
+            ws['F1'] = commune_str
+            ws['R1'] = voie_str
+            ws['L2'] = point_str
+            ws['N2'] = sens_num
+            ws['R2'] = direction_label
+            ws['F3'] = header_class_str
+            ws['R3'] = period_str
+            
+            # Header Page 2
+            ws['F68'] = commune_str
+            ws['R68'] = voie_str
+            ws['L69'] = point_str
+            ws['N69'] = sens_num
+            ws['R69'] = direction_label
+            ws['F70'] = header_class_str
+            ws['R70'] = period_str
+            
+            # Class labels
+            ws['A9'] = v_class_1
+            ws['A19'] = v_class_2
+            ws['A29'] = '+'
+            ws['A64'] = legend_class_str
+            ws['D58'] = f"TMJO {v_class_2}"
+            ws['H58'] = f"TMJA {v_class_2}"
+            
+            # Sub-dataset
+            if direction == 'Total':
+                sub_df = df
+            else:
+                sub_df = df[df['direction'] == direction]
+                if sub_df.empty and 'Sens 1' in df['direction'].unique() and direction == 'Sens 1':
+                    sub_df = df
+            
+            vl_hourly_matrix = []
+            pl_hourly_matrix = []
+            tv_hourly_matrix = []
+            
+            # Populate 7 daily rows
+            for idx, d in enumerate(days[:7]):
+                day_df = sub_df[sub_df['timestamp'].dt.date == d]
+                weekday_idx = d.isocalendar()[2] % 7 + 1 # 1=Sun, 2=Mon...
+                
+                # Class 1 (VL / 2RM)
+                c1_df = day_df[day_df['vehicle_class'] == v_class_1]
+                c1_hours = [int(c1_df[c1_df['timestamp'].dt.hour == h]['count'].sum()) for h in range(24)]
+                c1_tot = sum(c1_hours)
+                vl_hourly_matrix.append((d, weekday_idx, c1_hours, c1_tot))
+                
+                r_c1 = 9 + idx
+                ws.cell(r_c1, 2, value=datetime(d.year, d.month, d.day))
+                ws.cell(r_c1, 3, value=weekday_idx)
+                for h in range(24):
+                    ws.cell(r_c1, 4 + h, value=c1_hours[h])
+                ws.cell(r_c1, 28, value=c1_tot)
+                
+                # Class 2 (PL / 2R)
+                c2_df = day_df[day_df['vehicle_class'] == v_class_2]
+                c2_hours = [int(c2_df[c2_df['timestamp'].dt.hour == h]['count'].sum()) for h in range(24)]
+                c2_tot = sum(c2_hours)
+                pl_hourly_matrix.append((d, weekday_idx, c2_hours, c2_tot))
+                
+                r_c2 = 19 + idx
+                ws.cell(r_c2, 2, value=datetime(d.year, d.month, d.day))
+                ws.cell(r_c2, 3, value=weekday_idx)
+                for h in range(24):
+                    ws.cell(r_c2, 4 + h, value=c2_hours[h])
+                ws.cell(r_c2, 28, value=c2_tot)
+                
+                # TV
+                tv_hours = [c1_hours[h] + c2_hours[h] for h in range(24)]
+                tv_tot = c1_tot + c2_tot
+                tv_hourly_matrix.append((d, weekday_idx, tv_hours, tv_tot))
+                
+                r_tv = 29 + idx
+                ws.cell(r_tv, 2, value=datetime(d.year, d.month, d.day))
+                ws.cell(r_tv, 3, value=weekday_idx)
+                for h in range(24):
+                    ws.cell(r_tv, 4 + h, value=tv_hours[h])
+                ws.cell(r_tv, 28, value=tv_tot)
+                
+            # If fewer than 7 days, clear remaining template rows
+            for empty_idx in range(len(days), 7):
+                for base_r in [9 + empty_idx, 19 + empty_idx, 29 + empty_idx]:
+                    ws.cell(base_r, 2, value=None)
+                    ws.cell(base_r, 3, value=None)
+                    for h in range(24):
+                        ws.cell(base_r, 4 + h, value=0)
+                    ws.cell(base_r, 28, value=0)
+
+            # Averages calculation helper
+            def calc_averages(hourly_matrix):
+                if not hourly_matrix:
+                    return [0]*24, 0, [0]*24, 0
+                ouvrable_rows = [row for row in hourly_matrix if row[1] in [2, 3, 4, 5, 6]]
+                if not ouvrable_rows: ouvrable_rows = hourly_matrix
+                
+                tmjo_hours = [sum(row[2][h] for row in ouvrable_rows) / len(ouvrable_rows) for h in range(24)]
+                tmjo_tot = sum(row[3] for row in ouvrable_rows) / len(ouvrable_rows)
+                
+                tmja_hours = [sum(row[2][h] for row in hourly_matrix) / len(hourly_matrix) for h in range(24)]
+                tmja_tot = sum(row[3] for row in hourly_matrix) / len(hourly_matrix)
+                
+                return tmjo_hours, tmjo_tot, tmja_hours, tmja_tot
+
+            c1_tmjo_h, c1_tmjo_t, c1_tmja_h, c1_tmja_t = calc_averages(vl_hourly_matrix)
+            c2_tmjo_h, c2_tmjo_t, c2_tmja_h, c2_tmja_t = calc_averages(pl_hourly_matrix)
+            tv_tmjo_h, tv_tmjo_t, tv_tmja_h, tv_tmja_t = calc_averages(tv_hourly_matrix)
+
+            # Write TMJO / TMJA rows
+            # Class 1
+            for h in range(24):
+                ws.cell(16, 4 + h, value=round(c1_tmjo_h[h], 1))
+                ws.cell(17, 4 + h, value=round(c1_tmja_h[h], 1))
+            ws.cell(16, 28, value=round(c1_tmjo_t, 1))
+            ws.cell(17, 28, value=round(c1_tmja_t, 1))
+
+            # Class 2
+            for h in range(24):
+                ws.cell(26, 4 + h, value=round(c2_tmjo_h[h], 1))
+                ws.cell(27, 4 + h, value=round(c2_tmja_h[h], 1))
+            ws.cell(26, 28, value=round(c2_tmjo_t, 1))
+            ws.cell(27, 28, value=round(c2_tmja_t, 1))
+
+            # TV
+            for h in range(24):
+                ws.cell(36, 4 + h, value=round(tv_tmjo_h[h], 1))
+                ws.cell(37, 4 + h, value=round(tv_tmja_h[h], 1))
+            ws.cell(36, 28, value=round(tv_tmjo_t, 1))
+            ws.cell(37, 28, value=round(tv_tmja_t, 1))
+
+            # KPI summary cards
+            ws.cell(55, 4, value=round(tv_tmjo_t, 1))
+            ws.cell(55, 8, value=round(tv_tmja_t, 1))
+            ws.cell(59, 4, value=round(c2_tmjo_t, 1))
+            ws.cell(59, 8, value=round(c2_tmja_t, 1))
+            
+            pct_tmjo = (c2_tmjo_t / tv_tmjo_t) if tv_tmjo_t > 0 else 0
+            pct_tmja = (c2_tmja_t / tv_tmja_t) if tv_tmja_t > 0 else 0
+            ws.cell(61, 4, value=pct_tmjo)
+            ws.cell(61, 8, value=pct_tmja)
+            
+        try:
+            wb.active = wb.sheetnames.index('Synthèse Sens1')
+        except Exception:
+            pass
+            
+        wb.save(output_path)
+        if auto_open:
+            try:
+                os.startfile(output_path)
+            except Exception:
+                pass
+            
+        return output_path

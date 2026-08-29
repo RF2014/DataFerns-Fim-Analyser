@@ -16,9 +16,11 @@ from ..core.analytics import AnalyticsEngine
 from ..services.excel_service import ExcelService
 from ..services.report_service import ReportService
 from ..services.csv_ingress_service import CsvIngressService
+from ..services.raw_data_service import RawDataService
 from ..services.data_filtering_service import DataFilteringService
 from ..models.state import AppState
 from ..utils.helpers import resource_path
+from .dialogs import RawExportFormatDialog, ReportSettingsDialog
 
 class MetadataPanel(QWidget):
     """Refactored UI panel for traffic metadata, period filtering, and file operations"""
@@ -153,6 +155,9 @@ class MetadataPanel(QWidget):
         load_csv_btn = QPushButton("Charger CSV")
         load_csv_btn.clicked.connect(self.load_csv_file)
         
+        load_raw_btn = QPushButton("Charger Brut XLS")
+        load_raw_btn.clicked.connect(self.load_raw_file)
+        
         self.extract_btn = QPushButton("Exporter Excel")
         self.extract_btn.clicked.connect(self.extract_data)
         
@@ -165,6 +170,7 @@ class MetadataPanel(QWidget):
         
         ctrl_layout.addWidget(load_btn)
         ctrl_layout.addWidget(load_csv_btn)
+        ctrl_layout.addWidget(load_raw_btn)
         ctrl_layout.addWidget(self.extract_btn)
         ctrl_layout.addWidget(self.extract_csv_btn)
         ctrl_layout.addStretch()
@@ -184,6 +190,7 @@ class MetadataPanel(QWidget):
         field_names = [
             ('Période de début', 'start_datetime'),
             ('Période de fin', 'end_datetime'),
+            ('Données Vitesse', 'speed_status'),
             ('Sens 1 : VL (TMJ)', 'tmj_vl_sens1'),
             ('Sens 2 : VL (TMJ)', 'tmj_vl_sens2'),
             ('Sens 1 : PL (TMJ)', 'tmj_pl_sens1'),
@@ -303,9 +310,42 @@ class MetadataPanel(QWidget):
         finally:
             self._set_busy(False)
 
+    def load_raw_file(self):
+        """Load and parse alternative Raw Data file (.xls or .xlsx)"""
+        path, _ = QFileDialog.getOpenFileName(self, "Charger Données Brutes", "", "Excel (*.xls *.xlsx)")
+        if not path: return
+        
+        self.file_label.setText(os.path.basename(path))
+        self._set_busy(True, "Chargement des données brutes...")
+        try:
+            df, meta = RawDataService.parse_raw_data_file(path)
+            if df is not None:
+                df = AnalyticsEngine.remove_outliers(df)
+                vl, pl = AnalyticsEngine.compute_tmj(df)
+                meta.update({
+                    'tmj_vl_sens1': vl.get('Sens 1', '--'),
+                    'tmj_vl_sens2': vl.get('Sens 2', '--'),
+                    'tmj_pl_sens1': pl.get('Sens 1', '--'),
+                    'tmj_pl_sens2': pl.get('Sens 2', '--'),
+                })
+                self.state.set_data(df, meta)
+                QMessageBox.information(self, "Chargement Réussi", f"Le fichier de données brutes a été chargé et analysé avec succès.\n\nFichier : {os.path.basename(path)}")
+            else:
+                QMessageBox.critical(self, "Erreur", "Le fichier n'a pas pu être analysé. Assurez-vous qu'il respecte le format requis.")
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur", f"Échec du chargement: {e}")
+        finally:
+            self._set_busy(False)
+
     def update_ui_from_state(self, df, meta):
         """Update labels when state changes"""
+        has_velocity = meta.get('has_velocity', True)
+        speed_text = "Détectée (Avec Vitesse)" if has_velocity else "Non disponible (Comptage Seul)"
+        
         for key, widget in self.metadata_fields.items():
+            if key == 'speed_status':
+                widget.setText(speed_text)
+                continue
             val = meta.get(key, '--')
             if key == 'gps_coordinates' and val is None:
                 val = 'Non détecté'
@@ -375,11 +415,17 @@ class MetadataPanel(QWidget):
         QMessageBox.information(self, "Succès", "Filtre temporel appliqué avec succès. Les rapports et extractions utiliseront cette période.")
 
     def extract_data(self):
-        """Delegate to ExcelService with UI feedback, applying the date filter if set"""
+        """Export raw traffic data with user format selection (Standard or Weekly Matrix)"""
         if not self.state.has_data():
             QMessageBox.warning(self, "Attention", "Aucune donnée chargée")
             return
             
+        dialog = RawExportFormatDialog(self)
+        if dialog.exec_() != RawExportFormatDialog.Accepted:
+            return
+            
+        is_weekly = dialog.is_weekly_matrix_selected()
+        
         folder = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier d'export")
         if not folder: return
 
@@ -393,7 +439,11 @@ class MetadataPanel(QWidget):
                 meta_to_use['start_datetime'] = self.filter_start_dt.strftime('%d/%m/%Y %H:%M')
                 meta_to_use['end_datetime'] = self.filter_end_dt.strftime('%d/%m/%Y %H:%M')
                 
-            path = ExcelService.export_raw_data(df_to_use, meta_to_use, folder)
+            if is_weekly:
+                path = ExcelService.export_raw_data_weekly(df_to_use, meta_to_use, folder)
+            else:
+                path = ExcelService.export_raw_data(df_to_use, meta_to_use, folder)
+                
             QMessageBox.information(self, "Succès", f"Export réussi:\n{path}")
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Échec de l'export: {e}")
@@ -449,7 +499,7 @@ class MetadataPanel(QWidget):
 
         self._set_busy(True, "Génération du rapport analytique... Veuillez patienter.")
         try:
-            path = ReportService.generate_report(df_to_use, meta_to_use, settings, folder)
+            path = ReportService.generate_report(df_to_use, meta_to_use, settings, folder, auto_open=True)
             QMessageBox.information(self, "Succès", f"Rapport généré avec succès:\n{path}")
         except Exception as e:
             QMessageBox.critical(self, "Erreur", f"Échec de la génération du rapport: {e}")

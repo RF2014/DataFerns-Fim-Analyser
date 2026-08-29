@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Traffic Analytics Portal — Architecture & Development Proposal | Isotope 15</title>
+    <meta name="description" content="Technical architecture and development proposal for the Enterprise Traffic Analytics Portal prepared by Isotope 15.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- PAGE 1: COVER PAGE -->
+    <div class="page">
+        <div class="page-content cover-page">
+            <div class="cover-logo-container">
+                <div class="cover-brand">Isotope <span>15</span></div>
+            </div>
+            
+            <h1 class="cover-title">Architecture & Development Proposal</h1>
+            <p class="cover-subtitle">Enterprise Traffic Analytics Portal: A secure, multi-tenant web portal & Progressive Web App for regional traffic sensor analytics.</p>
+            
+            <div class="cover-tag">
+                <i class="fa-solid fa-file-contract"></i> Project Proposal
+            </div>
+            
+            <div class="cover-summary-box">
+                <h3><i class="fa-solid fa-bolt"></i> Proposal Highlights</h3>
+                <div class="cover-kpi-grid">
+                    <div class="cover-kpi">
+                        <div class="value">₹400,000</div>
+                        <div class="label">Total Cost (approx. €4,450)</div>
+                    </div>
+                    <div class="cover-kpi">
+                        <div class="value">4 Phases</div>
+                        <div class="label">Milestone Roadmap</div>
+                    </div>
+                    <div class="cover-kpi">
+                        <div class="value">€100 / mo</div>
+                        <div class="label">SLA & Maintenance</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cover-footer">
+                <div class="cover-meta">
+                    <strong>Prepared For</strong>
+                    <span><img src="logo.png" alt="Data Ferns Logo" class="client-logo"> Data Ferns</span>
+                </div>
+                <div class="cover-meta">
+                    <strong>Prepared By</strong>
+                    <span>Isotope 15 Services</span>
+                </div>
+                <div class="cover-meta">
+                    <strong>Date</strong>
+                    <span>June 11, 2026</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: EXECUTIVE SUMMARY -->
+    <div class="page">
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-bullseye"></i></div>
+                <div>
+                    <h2 class="section-title">1. Executive Summary</h2>
+                    <div class="section-subtitle">System definition and core business objectives</div>
+                </div>
+            </div>
+
+            <p class="section-desc">
+                This proposal outlines the development of a secure, multi-tenant web portal and Progressive Web App (PWA) designed to ingest, process, and visualize regional traffic sensor data. The platform utilizes localized mapping, interactive dashboards, and strict role-based data isolation, allowing end-customers to securely access proprietary traffic analytics from any desktop or mobile device.
+            </p>
+
+            <div class="grid-2 mt-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <i class="fa-solid fa-users-viewfinder"></i>
+                            <h3>Multi-Tenant Isolation</h3>
+                        </div>
+                        <span class="badge badge-success">Core</span>
+                    </div>
+                    <p class="text-sm">Strict separation of customer accounts ensuring proprietary traffic log assets and regional reports remain private, secure, and uncompromised.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                            <h3>PWA Capabilities</h3>
+                        </div>
+                        <span class="badge badge-info">Delivery</span>
+                    </div>
+                    <p class="text-sm">End-users can securely install the portal directly to their iOS or Android home screens without navigating Apple or Google App Stores.</p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h3>Localized Mapping</h3>
+                        </div>
+                        <span class="badge badge-warning">Interactive</span>
+                    </div>
+                    <p class="text-sm">Bypasses commercial API licensing costs (Mapbox, Google Maps) entirely by utilizing high-velocity, zero-cost OpenStreetMap tiles.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <h3>Sensor Visuals</h3>
+                        </div>
+                        <span class="badge badge-secondary">Analytics</span>
+                    </div>
+                    <p class="text-sm">Ingests parsed data packets directly from the desktop application, generating dashboard charts, traffic flows, and speed indicators.</p>
+                </div>
+            </div>
+
+            <div class="callout callout-info mt-2">
+                <i class="fa-solid fa-lightbulb"></i>
+                <div>
+                    <h4>Development Philosophy</h4>
+                    <p>By coupling localized map tiles with serverless databases, we eliminate recurring license fees while keeping page loads instant and data access fully locked down.</p>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Enterprise Traffic Analytics Portal — Proposal</div>
+                <div class="brand">Isotope <span>15</span></div>
+                <div>Page 2</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: TECHNICAL ARCHITECTURE -->
+    <div class="page">
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-server"></i></div>
+                <div>
+                    <h2 class="section-title">2. Technical Architecture & Tech Stack</h2>
+                    <div class="section-subtitle">High-speed data rendering and cost mitigation roadmap</div>
+                </div>
+            </div>
+
+            <p class="section-desc">
+                The technology stack is engineered specifically to eliminate recurring commercial mapping API costs, guarantee GDPR data sovereignty, and deliver high-velocity rendering for large datasets.
+            </p>
+
+            <div class="architecture-container">
+                <div class="architecture-title"><i class="fa-solid fa-diagram-project"></i> System Architecture Flow</div>
+                
+                <!-- SVG DIAGRAM -->
+                <svg viewBox="0 0 540 180" class="architecture-svg" style="width: 100%; height: auto;">
+                    <!-- Definitions for markers/arrows -->
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#94a3b8"/>
+                        </marker>
+                        <marker id="arrow-orange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#f97316"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Connections -->
+                    <path d="M 115,90 L 175,90" stroke="#f97316" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow-orange)" />
+                    <path d="M 245,65 L 325,45" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow)" />
+                    <path d="M 245,115 L 325,135" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow)" />
+                    <path d="M 405,115 L 405,65" stroke="#10b981" stroke-width="1.2" stroke-dasharray="2,2" marker-end="url(#arrow)" />
+                    <path d="M 445,45 L 490,45" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow)" />
+
+                    <!-- Labels on arrows -->
+                    <text x="145" y="80" fill="#f97316" font-family="'Inter', sans-serif" font-size="7" font-weight="700" text-anchor="middle">HTTPS JSON</text>
+                    <text x="275" y="45" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="6" text-anchor="middle">Render Engine</text>
+                    <text x="278" y="142" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="6" text-anchor="middle">Auth &amp; Row-Level Sec</text>
+                    <text x="435" y="100" fill="#10b981" font-family="'Inter', sans-serif" font-size="6" font-weight="600" text-anchor="middle">Fetch Logs</text>
+
+                    <!-- Nodes -->
+                    <!-- Node A: Python Desktop App -->
+                    <rect x="10" y="65" width="105" height="50" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+                    <text x="62.5" y="88" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="700" text-anchor="middle">Python Desktop</text>
+                    <text x="62.5" y="100" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="7.5" text-anchor="middle">App (.fim parser)</text>
+
+                    <!-- Node B: Cloudflare REST API Gateway -->
+                    <rect x="175" y="65" width="70" height="50" rx="8" fill="#1e293b" stroke="#f38020" stroke-width="1.5"/>
+                    <text x="210" y="88" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="700" text-anchor="middle">REST API</text>
+                    <text x="210" y="100" fill="#f38020" font-family="'Inter', sans-serif" font-size="7.5" text-anchor="middle">Cloudflare Pages</text>
+
+                    <!-- Node D: Next.js Frontend / PWA -->
+                    <rect x="325" y="15" width="120" height="50" rx="8" fill="#0f172a" stroke="#2563eb" stroke-width="1.5"/>
+                    <text x="385" y="38" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="700" text-anchor="middle">Next.js Frontend</text>
+                    <text x="385" y="50" fill="#38bdf8" font-family="'Inter', sans-serif" font-size="7.5" text-anchor="middle">React &amp; PWA Compiler</text>
+
+                    <!-- Node C: Supabase PostgreSQL -->
+                    <rect x="325" y="115" width="120" height="50" rx="8" fill="#0f172a" stroke="#3ecf8e" stroke-width="1.5"/>
+                    <text x="385" y="138" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="700" text-anchor="middle">Supabase DB</text>
+                    <text x="385" y="150" fill="#3ecf8e" font-family="'Inter', sans-serif" font-size="7.5" text-anchor="middle">PostgreSQL + RLS</text>
+
+                    <!-- Node E: Leaflet + OSM -->
+                    <rect x="490" y="15" width="40" height="50" rx="8" fill="#1e293b" stroke="#78ab46" stroke-width="1.5"/>
+                    <text x="510" y="38" fill="#ffffff" font-family="'Outfit', sans-serif" font-size="8" font-weight="700" text-anchor="middle">Leaflet</text>
+                    <text x="510" y="50" fill="#78ab46" font-family="'Inter', sans-serif" font-size="7" text-anchor="middle">OSM Tiles</text>
+                </svg>
+            </div>
+
+            <!-- Tech Logo Bar -->
+            <div class="tech-logo-bar">
+                <div class="tech-logo-item nextjs">
+                    <i class="fa-brands fa-react"></i>
+                    <span>Next.js / React</span>
+                </div>
+                <div class="tech-logo-item leaflet">
+                    <i class="fa-solid fa-map"></i>
+                    <span>Leaflet.js + OSM</span>
+                </div>
+                <div class="tech-logo-item supabase">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Supabase (Postgres)</span>
+                </div>
+                <div class="tech-logo-item cloudflare">
+                    <i class="fa-brands fa-cloudflare"></i>
+                    <span>Cloudflare Pages</span>
+                </div>
+            </div>
+
+            <p class="text-sm color-muted">
+                <strong>Cost-Saving Strategy:</strong> Leaflet.js paired with OpenStreetMap tiles completely bypasses commercial mapping providers. By serving map layers directly from open caches, we guarantee <strong>zero billing impact</strong> regardless of visitor count or traffic volume peaks.
+            </p>
+
+            <div class="page-footer">
+                <div>Enterprise Traffic Analytics Portal — Architecture</div>
+                <div class="brand">Isotope <span>15</span></div>
+                <div>Page 3</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 4: GDPR COMPLIANCE -->
+    <div class="page">
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <h2 class="section-title">3. GDPR Compliance & Data Sovereignty</h2>
+                    <div class="section-subtitle">Ensuring security and regulatory compliance for telemetry records</div>
+                </div>
+            </div>
+
+            <p class="section-desc">
+                To guarantee compliance with European Union data protection regulations (GDPR) regarding the storage, processing, and handling of proprietary regional traffic sensor records:
+            </p>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <i class="fa-solid fa-earth-europe color-primary"></i>
+                        <h3>EU Data Localization</h3>
+                    </div>
+                    <span class="badge badge-success">Compliant</span>
+                </div>
+                <p class="text-sm">
+                    All relational records, GPS coordinates, and user profile data will be provisioned exclusively within European hosting zones. We will deploy the primary database clusters and auth servers inside the <strong>AWS/Supabase eu-west-3 (Paris, France)</strong> or <strong>eu-central-1 (Frankfurt, Germany)</strong> datacenters.
+                </p>
+                <p class="text-sm mt-1">
+                    This safeguards compliance by ensuring that location logs, GPS track points, and sensor telemetry never cross outside European borders for storage.
+                </p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <i class="fa-solid fa-key color-primary"></i>
+                        <h3>PostgreSQL Row-Level Security (RLS)</h3>
+                    </div>
+                    <span class="badge badge-info">Secure Isolation</span>
+                </div>
+                <p class="text-sm">
+                    Supabase's core PostgreSQL engine utilizes strict, hardware-level Row-Level Security rules. By binding security policies directly to database tables, the system guarantees physical isolation:
+                </p>
+                <div class="insight-box mt-1" style="background: var(--bg-body); border-color: var(--border-color); padding: 0.75rem 1rem; margin-top: 0.5rem;">
+                    <p class="text-xs color-muted" style="margin: 0; font-family: monospace; line-height: 1.4;">
+                        CREATE POLICY tenant_isolation ON traffic_logs<br>
+                        FOR SELECT USING (tenant_id = auth.uid());
+                    </p>
+                </div>
+                <p class="text-sm mt-1">
+                    Even if the frontend web server is compromised, Client A is physically blocked from querying Client B's logs, safeguarding proprietary sensor payloads.
+                </p>
+            </div>
+
+            <div class="grid-2">
+                <div class="callout callout-success" style="margin: 0;">
+                    <i class="fa-solid fa-lock"></i>
+                    <div>
+                        <h4>Data at Rest</h4>
+                        <p>All database tables and backups are encrypted via industry-standard AES-256 algorithms.</p>
+                    </div>
+                </div>
+
+                <div class="callout callout-success" style="margin: 0;">
+                    <i class="fa-solid fa-wifi"></i>
+                    <div>
+                        <h4>Data in Transit</h4>
+                        <p>All client connections and API pushes are locked to encrypted TLS 1.2+ endpoints.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Enterprise Traffic Analytics Portal — GDPR</div>
+                <div class="brand">Isotope <span>15</span></div>
+                <div>Page 4</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 5: PROJECT ROADMAP -->
+    <div class="page">
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-route"></i></div>
+                <div>
+                    <h2 class="section-title">4. Project Roadmap & Financial Terms</h2>
+                    <div class="section-subtitle">Phased development outline and milestone billing structures</div>
+                </div>
+            </div>
+
+            <p class="section-desc">
+                The total development cost for this build is <strong>INR 400,000</strong> (approx. €4,450). Payments are structured in four distinct milestones to guarantee continuous project alignment and testing validation:
+            </p>
+
+            <ul class="timeline mt-2">
+                <li class="completed">
+                    <div class="tl-header">
+                        <div class="tl-title">Milestone 1: Project Kickoff</div>
+                        <div class="tl-badge">25% Advance</div>
+                    </div>
+                    <div class="tl-desc">Initiates architectural mapping, database schema design, and server-side resource provisioning. Setting up authentication routes.</div>
+                    <div class="tl-meta">
+                        <span><i class="fa-solid fa-money-bill-wave"></i> Payment: ₹100,000</span>
+                        <span><i class="fa-solid fa-calendar-day"></i> Week 1-2</span>
+                    </div>
+                </li>
+                <li class="active">
+                    <div class="tl-header">
+                        <div class="tl-title">Milestone 2: High-Fidelity Prototype</div>
+                        <div class="tl-badge">25% at Delivery</div>
+                    </div>
+                    <div class="tl-desc">Delivery of a live, unauthenticated HTML/CSS/Leaflet mockup on a staging link to finalize dashboard UX, Leaflet map interactions, and responsive mobile layouts.</div>
+                    <div class="tl-meta">
+                        <span><i class="fa-solid fa-money-bill-wave"></i> Payment: ₹100,000</span>
+                        <span><i class="fa-solid fa-calendar-day"></i> Week 3-4</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="tl-header">
+                        <div class="tl-title">Milestone 3: Alpha Test & Core Engineering</div>
+                        <div class="tl-badge">25% at Delivery</div>
+                    </div>
+                    <div class="tl-desc">Integration of Supabase databases, Next.js routes, and Cloudflare Pages. Delivery of a functional staging portal where test files can be securely uploaded, parsed, mapped, and filtered. Data-sync API finalized.</div>
+                    <div class="tl-meta">
+                        <span><i class="fa-solid fa-money-bill-wave"></i> Payment: ₹100,000</span>
+                        <span><i class="fa-solid fa-calendar-day"></i> Week 5-7</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="tl-header">
+                        <div class="tl-title">Milestone 4: Handover & Launch</div>
+                        <div class="tl-badge">25% at Completion</div>
+                    </div>
+                    <div class="tl-desc">Implementation of the Progressive Web App (PWA) installation manifest, Cloudflare WAF threat rules, final regression bug patching, and system migration to the live domain.</div>
+                    <div class="tl-meta">
+                        <span><i class="fa-solid fa-money-bill-wave"></i> Payment: ₹100,000</span>
+                        <span><i class="fa-solid fa-calendar-day"></i> Week 8-9</span>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="page-footer">
+                <div>Enterprise Traffic Analytics Portal — Roadmap</div>
+                <div class="brand">Isotope <span>15</span></div>
+                <div>Page 5</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 6: SLA & INFRASTRUCTURE LIMITS -->
+    <div class="page">
+        <div class="page-content">
+            <div class="section-header">
+                <div class="section-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                <div>
+                    <h2 class="section-title">5. Infrastructure Limits & Managed SLA</h2>
+                    <div class="section-subtitle">Post-delivery support timelines, maintenance, and server limits</div>
+                </div>
+            </div>
+
+            <p class="section-desc">
+                The setup leverages generous Cloudflare and Supabase Free Tiers, sufficient for standard business traffic. Under this setup, the platform supports the limits shown below.
+            </p>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <i class="fa-solid fa-microchip"></i>
+                        <h3>Free Tier Infrastructure Capabilities</h3>
+                    </div>
+                    <span class="badge badge-success">Optimized</span>
+                </div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-label"><span class="name">Bandwidth (Data Egress)</span><span class="pval">Up to 5 GB / month (10,000 requests)</span></div>
+                    <div class="progress-track"><div class="progress-fill" style="width: 75%;"></div></div>
+                </div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-label"><span class="name">Database Relational Storage</span><span class="pval">500 MB (Highly Compressed Postgres Tables)</span></div>
+                    <div class="progress-track"><div class="progress-fill success" style="width: 50%;"></div></div>
+                </div>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-label"><span class="name">Monthly Active Authenticated Users</span><span class="pval">Up to 50,000 MAUs</span></div>
+                    <div class="progress-track"><div class="progress-fill" style="width: 90%;"></div></div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label"><span class="name">Compute Edge Functions</span><span class="pval">100,000 execution requests / day</span></div>
+                    <div class="progress-track"><div class="progress-fill accent" style="width: 65%;"></div></div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Warranty Period</h3>
+                    </div>
+                    <p class="text-sm">
+                        The first **3 months** post-handover are fully covered at **no additional cost**. This includes software bugs, deployment stabilization, and runtime debugging.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Ongoing Maintenance</h3>
+                    </div>
+                    <p class="text-sm">
+                        Transition to a Managed SLA at **€100/mo** (or **€1,000/year**). Includes dependency security updates, database back-ups, and uptime audits.
+                    </p>
+                </div>
+            </div>
+
+            <div class="callout callout-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    <h4>Overage & Scaling Policy</h4>
+                    <p>Should logs or user volume breach free limits, upgrade to the Supabase Pro Tier is required (approx. €25/month + usage). We will provide a 30-day monitoring warning before limit thresholds are reached.</p>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <div>Enterprise Traffic Analytics Portal — Support &amp; SLA</div>
+                <div class="brand">Isotope <span>15</span></div>
+                <div>Page 6</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

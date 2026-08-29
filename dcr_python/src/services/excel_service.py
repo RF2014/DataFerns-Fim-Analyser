@@ -35,6 +35,8 @@ class ExcelService:
             ("TMJ PL Sens 1", metadata.get('tmj_pl_sens1', '--')),
             ("TMJ PL Sens 2", metadata.get('tmj_pl_sens2', '--')),
         ]
+        if metadata.get('gps_coordinates'):
+            meta_items.append(("Coordonnées GPS", metadata.get('gps_coordinates')))
         df_meta = pd.DataFrame(meta_items, columns=["Champ", "Valeur"])
 
         # Prepare Comptages
@@ -74,9 +76,22 @@ class ExcelService:
             df_s1.to_excel(writer, sheet_name='Comptages Sens 1', index=False)
             df_s2.to_excel(writer, sheet_name='Comptages Sens 2', index=False)
             
-            for d, c in [('Sens 1', 'VL'), ('Sens 2', 'VL'), ('Sens 1', 'PL'), ('Sens 2', 'PL')]:
-                v_df = build_vitesse(d, c)
-                if not v_df.empty:
-                    v_df.to_excel(writer, sheet_name=f'Vitesse {d} {c}', index=False)
+            has_velocity = metadata.get('has_velocity', True)
+            if has_velocity:
+                for d, c in [('Sens 1', 'VL'), ('Sens 2', 'VL'), ('Sens 1', 'PL'), ('Sens 2', 'PL')]:
+                    v_df = build_vitesse(d, c)
+                    if not v_df.empty:
+                        v_df.to_excel(writer, sheet_name=f'Vitesse {d} {c}', index=False)
                     
         return file_path
+
+    @staticmethod
+    def export_raw_data_weekly(df: pd.DataFrame, metadata: Dict[str, Any], folder_path: str) -> str:
+        """
+        Export raw traffic data in the alternative Weekly Matrix format matching Raw-data-format.XLS.
+        """
+        from .raw_data_service import RawDataService
+        file_path = os.path.join(folder_path, "Données_brutes_semaine.xlsx")
+        RawDataService.export_raw_data_weekly_matrix(df, metadata, file_path)
+        return file_path
+

@@ -67,7 +67,7 @@ def test_timeseries_data_generation_with_filtering():
     
     # Create test dataframe
     df_original = create_test_dataframe()
-    print(f"\n✓ Created test data:")
+    print(f"\n[OK] Created test data:")
     print(f"  - Total rows: {len(df_original)}")
     print(f"  - Date range: {df_original['timestamp'].min()} to {df_original['timestamp'].max()}")
     
@@ -116,7 +116,7 @@ def test_timeseries_data_generation_with_filtering():
     print(f"  PL data groups: {list(ts_data_full['PL'].keys())}")
     print(f"  Total data groups: {list(ts_data_full['Total'].keys())}")
     print(f"  VL Cumul records: {len(ts_data_full['VL']['Cumul'])}")
-    print("  ✓ PASSED: Time series data generated for full range")
+    print("  [OK] PASSED: Time series data generated for full range")
     
     # Test Case 2: Partial range (2 days)
     print("\n" + "-" * 70)
@@ -155,7 +155,7 @@ def test_timeseries_data_generation_with_filtering():
     assert len(ts_data_partial['VL']['Cumul']) < len(ts_data_full['VL']['Cumul']), \
         "Partial range should have fewer records"
     
-    print("  ✓ PASSED: Time series data correctly filtered to partial range")
+    print("  [OK] PASSED: Time series data correctly filtered to partial range")
     
     # Test Case 3: Single day
     print("\n" + "-" * 70)
@@ -175,7 +175,7 @@ def test_timeseries_data_generation_with_filtering():
     print(f"  Single day total rows: {len(df_filtered)}")
     print(f"  Unique dates: {unique_dates}")
     assert unique_dates == 1, "Should only have 1 unique date"
-    print("  ✓ PASSED: Time series data correctly filtered to single day")
+    print("  [OK] PASSED: Time series data correctly filtered to single day")
     
     # Test Case 4: Verify total vehicle counts are consistent
     print("\n" + "-" * 70)
@@ -202,7 +202,7 @@ def test_timeseries_data_generation_with_filtering():
     print(f"  Direct sum: {combined_total:,}")
     
     assert calculated_total == combined_total, "VL + PL should equal total"
-    print("  ✓ PASSED: Vehicle count totals are consistent")
+    print("  [OK] PASSED: Vehicle count totals are consistent")
     
     # Test Case 5: Verify daily averages
     print("\n" + "-" * 70)
@@ -226,17 +226,17 @@ def test_timeseries_data_generation_with_filtering():
     print(f"  Daily average: {daily_avg:.1f}")
     
     assert daily_avg > 0, "Daily average should be positive"
-    print("  ✓ PASSED: Daily average calculation works with filtered data")
+    print("  [OK] PASSED: Daily average calculation works with filtered data")
     
     print("\n" + "=" * 70)
-    print("ALL INTEGRATION TESTS PASSED ✓")
+    print("ALL INTEGRATION TESTS PASSED [OK]")
     print("=" * 70)
     print("\nSummary:")
-    print("  ✓ Time series data generation with filtering works")
-    print("  ✓ Partial date ranges correctly reduce data size")
-    print("  ✓ Single day filtering works correctly")
-    print("  ✓ Vehicle count totals remain consistent")
-    print("  ✓ Statistical calculations work with filtered data")
+    print("  [OK] Time series data generation with filtering works")
+    print("  [OK] Partial date ranges correctly reduce data size")
+    print("  [OK] Single day filtering works correctly")
+    print("  [OK] Vehicle count totals remain consistent")
+    print("  [OK] Statistical calculations work with filtered data")
 
 
 if __name__ == "__main__":

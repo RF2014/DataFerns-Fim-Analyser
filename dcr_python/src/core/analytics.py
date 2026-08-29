@@ -112,8 +112,8 @@ class AnalyticsEngine:
         days = df['date_only'].nunique() or 1
         
         table = df.pivot_table(index='direction', columns='vehicle_class', values='count', aggfunc='sum', fill_value=0)
-        vl_dir = (table['VL'] / days).to_dict() if 'VL' in table else {}
-        pl_dir = (table['PL'] / days).to_dict() if 'PL' in table else {}
+        vl_dir = (table['VL'] / days).to_dict() if 'VL' in table else ((table['2RM'] / days).to_dict() if '2RM' in table else {})
+        pl_dir = (table['PL'] / days).to_dict() if 'PL' in table else ((table['2R'] / days).to_dict() if '2R' in table else {})
         
         return {k: int(v) for k, v in vl_dir.items()}, {k: int(v) for k, v in pl_dir.items()}
 

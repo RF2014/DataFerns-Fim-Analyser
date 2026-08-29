@@ -419,3 +419,46 @@ class ReportSettingsDialog(QDialog):
             "gps_coordinates": self.gps_input.text(),
             "sens": self.sens_input.text()
         }
+
+
+class RawExportFormatDialog(QDialog):
+    """Dialog for choosing raw data export format"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Format d'Export des Données Brutes")
+        self.setMinimumWidth(450)
+        self.init_ui()
+        
+    def init_ui(self):
+        from PyQt5.QtWidgets import QRadioButton
+        layout = QVBoxLayout()
+        layout.setSpacing(15)
+        
+        lbl = QLabel("Sélectionnez le format d'exportation pour les données brutes :")
+        lbl.setStyleSheet("font-weight: bold; font-size: 13px; color: #212529;")
+        layout.addWidget(lbl)
+        
+        self.standard_radio = QRadioButton("Format Standard Excel (Multi-feuilles : Métadonnées, Comptages, Vitesse)")
+        self.standard_radio.setChecked(True)
+        
+        self.weekly_radio = QRadioButton("Format Matrice Hebdomadaire (Données Brutes V3 : Semaine / 24h)")
+        
+        layout.addWidget(self.standard_radio)
+        layout.addWidget(self.weekly_radio)
+        
+        btns = QHBoxLayout()
+        ok_btn = QPushButton("Exporter")
+        ok_btn.clicked.connect(self.accept)
+        cancel_btn = QPushButton("Annuler")
+        cancel_btn.clicked.connect(self.reject)
+        btns.addStretch()
+        btns.addWidget(ok_btn)
+        btns.addWidget(cancel_btn)
+        layout.addLayout(btns)
+        
+        self.setLayout(layout)
+        
+    def is_weekly_matrix_selected(self) -> bool:
+        return self.weekly_radio.isChecked()
+

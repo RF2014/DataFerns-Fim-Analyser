@@ -12,7 +12,7 @@ dist/
 
 # PyInstaller
 *.manifest
-*.spec
+!DataFerns.spec
 
 # Environments
 .env
@@ -36,12 +36,17 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Binaries & Scratch
+*.exe
+dcr_python/scratch/
+
 # Data outputs
 output/
 *.csv
 *.xlsx
 *.xls
 !dcr_python/src/report-template.xlsx
+!dcr_python/src/report-template-no-velocity.xlsx
 
 #tmp
 tmp/

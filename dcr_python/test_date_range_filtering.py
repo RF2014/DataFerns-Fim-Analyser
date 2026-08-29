@@ -75,7 +75,7 @@ def test_date_range_filtering():
     
     # Create test data
     df_original = create_test_data()
-    print(f"\n✓ Created test data:")
+    print(f"\n[OK] Created test data:")
     print(f"  - Total rows: {len(df_original)}")
     print(f"  - Date range: {df_original['timestamp'].min()} to {df_original['timestamp'].max()}")
     print(f"  - Unique dates: {len(df_original['timestamp'].dt.date.unique())}")
@@ -92,7 +92,7 @@ def test_date_range_filtering():
     print(f"  Input range: {start_dt} to {end_dt}")
     print(f"  Filtered rows: {len(df_filtered)}")
     assert len(df_filtered) == len(df_original), "Full range filter failed"
-    print("  ✓ PASSED: Full date range filtering works")
+    print("  [OK] PASSED: Full date range filtering works")
     
     # Test Case 2: First 2 days only
     print("\n" + "-" * 60)
@@ -108,7 +108,7 @@ def test_date_range_filtering():
     print(f"  Unique dates: {len(df_filtered['timestamp'].dt.date.unique())}")
     assert len(df_filtered) > 0, "Filter returned no data"
     assert len(df_filtered) < len(df_original), "Filter did not reduce data"
-    print("  ✓ PASSED: Partial date range filtering works")
+    print("  [OK] PASSED: Partial date range filtering works")
     
     # Test Case 3: Single day
     print("\n" + "-" * 60)
@@ -124,7 +124,7 @@ def test_date_range_filtering():
     print(f"  Unique dates: {len(df_filtered['timestamp'].dt.date.unique())}")
     assert len(df_filtered) > 0, "Single day filter returned no data"
     assert len(df_filtered['timestamp'].dt.date.unique()) == 1, "Single day filter returned multiple dates"
-    print("  ✓ PASSED: Single day filtering works")
+    print("  [OK] PASSED: Single day filtering works")
     
     # Test Case 4: Middle days
     print("\n" + "-" * 60)
@@ -140,7 +140,7 @@ def test_date_range_filtering():
     print(f"  Unique dates: {len(df_filtered['timestamp'].dt.date.unique())}")
     assert len(df_filtered) > 0, "Middle days filter returned no data"
     assert len(df_filtered) < len(df_original), "Middle days filter did not reduce data"
-    print("  ✓ PASSED: Middle date range filtering works")
+    print("  [OK] PASSED: Middle date range filtering works")
     
     # Test Case 5: Empty range (shouldn't happen in practice)
     print("\n" + "-" * 60)
@@ -154,7 +154,7 @@ def test_date_range_filtering():
     print(f"  Input range: {start_dt} to {end_dt}")
     print(f"  Filtered rows: {len(df_filtered)}")
     assert len(df_filtered) == 0, "Empty range should return 0 rows"
-    print("  ✓ PASSED: Empty range correctly returns no data")
+    print("  [OK] PASSED: Empty range correctly returns no data")
     
     # Test statistics calculation with filtered data
     print("\n" + "-" * 60)
@@ -190,10 +190,10 @@ def test_date_range_filtering():
     print(f"    - Total vehicles: {total_partial:,}")
     print(f"    - Days covered: {days_partial}")
     print(f"    - Daily average: {daily_avg_partial:.1f}")
-    print("  ✓ PASSED: Statistics calculation with filtered data works")
+    print("  [OK] PASSED: Statistics calculation with filtered data works")
     
     print("\n" + "=" * 60)
-    print("ALL TESTS PASSED ✓")
+    print("ALL TESTS PASSED [OK]")
     print("=" * 60)
 
 
